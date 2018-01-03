@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.commonsware.cwac.netseccfg.test"
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:versionCode="1"
-  android:versionName="1.0">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.commonsware.cwac.netseccfg.test"
+          android:versionCode="1"
+          android:versionName="1.0">
 
-  <application android:networkSecurityConfig="@xml/verisign">
-    <meta-data
-      android:name="android.security.net.config"
-      android:resource="@xml/verisign" />
-  </application>
+    <application android:networkSecurityConfig="@xml/user">
+        <meta-data
+            android:name="android.security.net.config"
+            android:resource="@xml/user"/>
+    </application>
 
 </manifest>
