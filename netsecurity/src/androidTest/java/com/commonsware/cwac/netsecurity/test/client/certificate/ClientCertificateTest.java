@@ -159,6 +159,7 @@ public class ClientCertificateTest {
     private void test(OkHttpClient.Builder builder) throws Exception {
         final Request request = new Request.Builder().url(getUrl()).build();
         try {
+            //everything could be shared except the ssl socket factory.
             builder.sslSocketFactory(getSSLSocketFactory(), constructTrustManager());
             doExecute(request, builder.build());
         } catch (SSLHandshakeException e) {
