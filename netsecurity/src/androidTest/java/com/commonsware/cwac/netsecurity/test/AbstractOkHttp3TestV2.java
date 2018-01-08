@@ -13,7 +13,6 @@ package com.commonsware.cwac.netsecurity.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import com.commonsware.cwac.netsecurity.CertChainListener;
 import com.commonsware.cwac.netsecurity.OkHttp3Integrator;
 import com.commonsware.cwac.netsecurity.TrustManagerBuilder;
 
@@ -23,9 +22,12 @@ import junit.framework.AssertionFailedError;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.security.cert.X509Certificate;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509TrustManager;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -33,48 +35,39 @@ import okhttp3.Response;
 
 @RunWith(AndroidJUnit4.class)
 abstract public class AbstractOkHttp3TestV2 {
-    private boolean receivedChain = false;
 
     abstract protected String getUrl();
 
-    abstract protected TrustManagerBuilder getBuilder()
-            throws Exception;
+    abstract protected TrustManagerBuilder getBuilder() throws Exception;
 
+    abstract protected SSLSocketFactory getSSLSocketFactory() throws Exception;
+
+    @SuppressWarnings("ConstantConditions")
     @Test
     public void testRequest() throws Exception {
+
+        test();
+        test();
+        test();
+        test();
+    }
+
+    private void test() throws Exception {
         final Request request = new Request.Builder()
                 .url(getUrl())
                 .build();
-        final TrustManagerBuilder tmb = getBuilder();
-        final OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        boolean hasBuilder = false;
 
-        if (tmb != null) {
-            hasBuilder = true;
-
-            tmb.withCertChainListener(new CertChainListener() {
-                @Override
-                public void onChain(X509Certificate[] chain,
-                                    String domain) {
-                    receivedChain = true;
-                }
-            });
-
-            OkHttp3Integrator.applyTo(tmb, builder);
-        }
 
         try {
-            Response response = builder.build().newCall(request).execute();
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
-            if (!isPositiveTest()) {
-                throw new AssertionFailedError("Expected SSLHandshakeException, did not get!");
+            final TrustManagerBuilder tmb = getBuilder();
+            if (tmb != null) {
+                OkHttp3Integrator.applyTo(tmb, builder);
             }
 
-            Assert.assertEquals(getExpectedResponse(), response.body().string());
-
-            if (hasBuilder) {
-                Assert.assertTrue("Received chain", receivedChain);
-            }
+            doExecute(request, builder);
+            doExecute(request, builder);
         } catch (SSLHandshakeException e) {
             if (isPositiveTest()) {
                 throw e;
@@ -86,6 +79,25 @@ abstract public class AbstractOkHttp3TestV2 {
             }
         }
     }
+
+    private void doExecute(Request request, OkHttpClient.Builder builder) throws Exception {
+
+
+        SSLSocketFactory sslSocketFactory = getSSLSocketFactory();
+        if (sslSocketFactory != null) {
+            builder.sslSocketFactory(sslSocketFactory, construct());
+        }
+
+
+        Response response = builder.build().newCall(request).execute();
+        if (!isPositiveTest()) {
+            throw new AssertionFailedError("Expected SSLHandshakeException, did not get!");
+        }
+        Assert.assertEquals(getExpectedResponse(), response.body().string());
+    }
+
+    public abstract X509TrustManager construct() throws NoSuchAlgorithmException, KeyStoreException;
+
 
     protected String getExpectedResponse() {
         return ("{\"Hello\": \"world\"}");
