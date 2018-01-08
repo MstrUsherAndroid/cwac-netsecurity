@@ -9,7 +9,7 @@
  language governing permissions and limitations under the License.
  */
 
-package com.commonsware.cwac.netsecurity.test;
+package com.commonsware.cwac.netsecurity.test.client.certificate;
 
 import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
@@ -51,7 +51,6 @@ public class ClientCertificateTest {
 
     private TrustManagerBuilder trustManagerBuilder;
     private X509TrustManager trustManager;
-    private SSLSocketFactory sslSocketFactory;
     private KeyManager[] keyManagers;
 
     protected String getUrl() {
@@ -94,8 +93,7 @@ public class ClientCertificateTest {
 
         try {
             //have to create a new ssl socket factory.
-            sslSocketFactory = getSslSocketFactory();
-            return sslSocketFactory;
+            return getSslSocketFactory();
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             e.printStackTrace();
         }
